@@ -6,6 +6,7 @@ venv/
 
 # Images
 Images/
+Libs/
 
 # YOLO
 runs/
