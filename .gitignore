@@ -8,6 +8,8 @@ venv/
 Images/
 Libs/
 
+*.exe
+
 # YOLO
 runs/
 weights/
