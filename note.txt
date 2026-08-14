@@ -1,0 +1,16 @@
+Image Registration (Alignment) để chuẩn hóa vị trí PCB.
+ROI Management (lưu, quản lý và cắt ROI theo từng đối tượng).
+Thêm module Rule Base cho:
+Missing Hole (đã có)
+Open Circuit
+Short Circuit
+Spur
+Mouse Bite
+Tích hợp YOLO11m như một module AI độc lập, có thể bật/tắt.
+Xây dựng GUI bằng Qt + C++.
+Thêm các tính năng của một phần mềm AOI thực tế:
+Load recipe (danh sách ROI và thông số kiểm tra)
+Hiển thị ảnh gốc và ảnh kết quả
+Overlay vị trí lỗi
+PASS/FAIL theo từng ROI và toàn bộ PCB
+Lưu ảnh NG và xuất báo cáo

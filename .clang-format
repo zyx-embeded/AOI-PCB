@@ -1,0 +1,307 @@
+---
+Language:        Cpp
+# Google style 
+#BasedOnStyle:  Google
+
+# at least C++11
+Standard:       Auto
+#Standard:       Cpp11
+
+# Column width is limited to 100 in accordance with Qt Coding Style
+ColumnLimit:     100
+
+# Extra indent or outdent of access modifiers e.g. 'public:'
+AccessModifierOffset: -2
+
+# Align parameters on the open bracket
+AlignAfterOpenBracket: Align
+
+# Align consecutive assignments
+# int aaaa = 12;
+# int b = 14;
+AlignConsecutiveAssignments: false
+
+# Align consecutive declarations
+# int    aaaa
+# double b;
+AlignConsecutiveDeclarations: false
+
+# Align escaped newlines as far left as possible
+# #define A   \
+#   int aaaa; \
+#   int b;    \
+#   int cccccccc;
+AlignEscapedNewlines: Left
+
+# Align operands of binary and ternary expressions
+# int aaa = bbbbbbbbbbb +
+#           cccccc;
+AlignOperands:   true
+
+# Do not align trailing comments
+# int a; // Comment a
+# int b = 2; // Comment b
+AlignTrailingComments: true
+
+# If the function declaration doesn’t fit on a line,
+# by default don't allow putting parameters onto the next line
+# void myFunction(int a,
+#                 int b,
+#                 int c,
+#                 int d,
+#                 int e);
+AllowAllParametersOfDeclarationOnNextLine: true
+
+# Only merge empty blocks.
+# while(true) {}
+# while(true) {
+#   continue;
+# }
+# AllowShortBlocksOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: false
+
+# do not put short case statement on single line
+AllowShortCaseLabelsOnASingleLine: false
+
+# Write short functions on single line 
+AllowShortFunctionsOnASingleLine: false
+
+# Do not put short if statement on single line like: if (a) return;
+# if (a)
+#    return;
+# AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: false
+
+# Do not put short statement on single line
+AllowShortLoopsOnASingleLine: false
+
+# Merge lambda into a single line if argument of a function
+# clang-format 11
+#AllowShortLambdasOnASingleLine: Inline
+
+# do not add a line break after the return type of top-level functions
+AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterDefinitionReturnType: None
+
+# Break multiline string literals
+AlwaysBreakBeforeMultilineStrings: true
+
+# Always break after template declaration
+AlwaysBreakTemplateDeclarations: true
+
+# Pack as many parameters or arguments onto the same line as possible
+# int myFunction(int aaaaaaaaaaaa, int bbbbbbbb,
+#                int cccc);
+BinPackArguments: true
+BinPackParameters: true
+
+# we want to break before the operators, but not before a '='.
+# BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBinaryOperators: true
+
+# Break before Ternary op
+# veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongDescription
+#    ? firstValue
+#    : SecondValueVeryVeryVeryVeryLong;
+BreakBeforeTernaryOperators: true
+
+BraceWrapping:   
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+# Use Allman style braces
+BreakBeforeBraces: Allman
+
+# Break ctor initializers before the colon and after the commas.
+BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: BeforeColon
+
+# Break inheritance list before the colon and after the comma.
+# clang-format 11
+# BreakInheritanceList: BeforeColon
+
+# Don't break string literals
+BreakStringLiterals: false
+
+# Regex that describes comments with special meaning, which should not
+# be split up
+CommentPragmas:  '^ IWYU pragma:'
+
+# Declare each namespace on a new line
+CompactNamespaces: false
+
+# when ctor initializers do not fit on one line, put them on new line.
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+# Indent initializers by 4 space
+ConstructorInitializerIndentWidth: 4
+
+# Indent width for line continuations.
+ContinuationIndentWidth: 4
+
+# use C++11 braced list
+Cpp11BracedListStyle: true
+
+# analyze full file for common pointer alignments
+DerivePointerAlignment: true
+
+# Do not disable formatting
+DisableFormat:   false
+
+# not used
+ExperimentalAutoDetectBinPacking: false
+
+# add missing namespace end comments
+FixNamespaceComments: true
+
+# Interpret as for loops instead of functions
+ForEachMacros:   
+  - foreach
+  - Q_FOREACH
+  - BOOST_FOREACH
+  - Q_FOREVER
+  - QBENCHMARK
+  - QBENCHMARK_ONCE
+
+# Preserve the include order
+IncludeBlocks:   Preserve
+
+# different include categories for sorting
+IncludeCategories: 
+  - Regex:           '^<boost/.*\.hpp>'
+    Priority:        1
+  - Regex:           '^<.*\.h>'
+    Priority:        2
+  - Regex:           '^<.*'
+    Priority:        2
+  - Regex:           '.*'
+    Priority:        3
+IncludeIsMainRegex: '([-_](test|unittest))?$'
+
+# Use the same indentation level as for the switch statement.
+# Switch statement body is always indented one level more than case labels.
+IndentCaseLabels: false
+
+# Allow indentation for preprocessing directives (if/ifdef/endif)
+IndentPPDirectives: AfterHash
+
+IndentWidth:     4
+
+# Don't indent if a function definition or declaration is wrapped after the type
+IndentWrappedFunctionNames: false
+
+# leave string quote as is
+JavaScriptQuotes: Leave
+
+# wrap JS import/export statements
+JavaScriptWrapImports: true
+
+# No empty line at the start of a block.
+KeepEmptyLinesAtTheStartOfBlocks: false
+
+# no regex for macro blocks
+MacroBlockBegin: ''
+MacroBlockEnd:   ''
+
+# The maximum number of consecutive empty lines to keep.
+MaxEmptyLinesToKeep: 1
+
+# No indentation for namespaces.
+NamespaceIndentation: None
+
+# Penalties
+# This decides what order things should be done if a line is too long
+PenaltyBreakAssignment: 200
+PenaltyBreakBeforeFirstCallParameter: 200
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 200
+# clang-format 11 feature
+#PenaltyBreakTemplateDeclaration: 10
+
+# Align pointer to the left
+# int* p; NOT int *p;
+# From Stroustup:
+# 'p' is a pointer to an int, emphasizing type. Indeed the type of p is int*.
+# I clearly prefer that emphasis and see it as important for using the
+# more advanced parts of C++ well
+PointerAlignment: Left
+
+# continue the comment use style '//' used then continue using it
+# if '/*' used then use that instead
+ReflowComments:  true
+
+# Do not sort the include files
+SortIncludes:    false
+
+# sort the 'using' statement
+SortUsingDeclarations: true
+
+# Don't insert a space after a cast
+# x = (int32)y;    not    x = (int32) y;
+SpaceAfterCStyleCast: false
+
+# Use template <> instead of template<>
+SpaceAfterTemplateKeyword: true
+
+# Insert spaces before and after assignment operators
+# int a = 5;    not    int a=5;
+# a += 42;             a+=42;
+SpaceBeforeAssignmentOperators: true
+
+# Put a space before opening parentheses only after control statement keywords.
+# void f() {
+#   if (true) {
+#     f();
+#   }
+# }
+SpaceBeforeParens: ControlStatements
+
+# Don't insert spaces inside empty '()'
+SpaceInEmptyParentheses: false
+
+# The number of spaces before trailing line comments (// - comments).
+# This does not affect trailing block comments (/* - comments).
+SpacesBeforeTrailingComments: 2
+
+# Insert space into {}
+# void f() { } NOT void f() {}
+#
+# clang-format 11 feature
+#SpaceInEmptyBlock:  true
+
+# Don't insert space into ()
+
+# Don't insert spaces in casts
+# x = (int32) y;    not    x = ( int32 ) y;
+SpacesInCStyleCastParentheses: false
+
+# Don't insert spaces after '(' or before ')'
+# f(arg);    not    f( arg );
+SpacesInParentheses: false
+
+# Don't insert spaces after '[' or before ']'
+# int a[5];    not    int a[ 5 ];
+SpacesInSquareBrackets: false
+
+UseTab:          Always
+TabWidth:        4
+
+# never use tab
+...
+
