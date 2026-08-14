@@ -1,1 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Images
+Images/
+
+# YOLO
+runs/
+weights/
+*.pt
+
+# Datasets
+dataset/
+datasets/
+
+# IDE
 .vscode/
+
+# OS
+.DS_Store
+Thumbs.db
