@@ -163,41 +163,43 @@ Mat createPadMask(const Mat rawImg, int aMin, int aMax, int sMin, int sMax)
 	return padRawMask;
 }
 
-bool exportBoardFeaturesToJson(const vector<Pad>& pads, const string& filePath)
+vector<Pad> importBoardFeatureFromJson(const string& filePath)
 {
-	ofstream file(filePath + "/golden.json");
-	nlohmann::json j;
-
+	ifstream file(filePath + "/golden.json");
+	nlohmann::json data;
+	vector<Pad> pads;
+	Pad pad;
 	if (!file.is_open())
 	{
 		cerr << "ERROR: Cannot open file: " << filePath << endl;
-
-		return false;
+		/* File cannot be opened */
+		return pads;
 	}
 
-	// Extract json data
-	j["pads"] = nlohmann::json::array();
-	for (auto& pad : pads)
+	// Read json data
+	file >> data;
+	for (const auto& item : data["pads"])
 	{
-		nlohmann::json p;
-		p["id"] = pad.id;
-		p["center"] = {pad.center.x, pad.center.y};
-		p["bounding_box"] = {pad.boundaryBox.x, pad.boundaryBox.y, pad.width, pad.height};
-		p["area"] = pad.area;
-		j["pads"].push_back(p);
+		pad.id = item["id"];
+
+		pad.width = item["boundary_box"][2];
+		pad.height = item["boundary_box"][3];
+
+		pad.boundaryBox.x = item["boundary_box"][0];
+		pad.boundaryBox.y = item["boundary_box"][1];
+		pad.boundaryBox.width = item["boundary_box"][2];
+		pad.boundaryBox.height = item["boundary_box"][3];
+
+		pad.area = item["area"];
+		pad.center.x = item["center"][0];
+		pad.center.y = item["center"][1];
+
+		pads.push_back(pad);
 	}
 
-	file << j.dump(4);
 	file.close();
 
-	if (file.fail())
-	{
-		cerr << "ERROR: Failed while writing file: " << filePath << endl;
-
-		return false;
-	}
-
-	return true;
+	return pads;
 }
 
 int main(int argc, char const* argv[])
@@ -250,44 +252,70 @@ int main(int argc, char const* argv[])
 		bitwise_not(copperClean, copperClean);
 		bitwise_or(copperClean, padMask, connectivityMask);
 
-		// Xử lý bridge (cho các pad sau khi threshold không connect vào đúng trace)
-
-		Mat dist, labels;
-		distanceTransform(traceMaskInv, dist, labels, DIST_L2, 5, DIST_LABEL_PIXEL);
-
 		// Xử lý boundary pad
-		Mat erodedPad, padBoundary;
+		Mat erodedPad, padBoundaryMask;
 		erode(padMask, erodedPad, kernel);
-		padBoundary = padMask - erodedPad;
+		padBoundaryMask = padMask - erodedPad;
 
-		// Cần phải đọc thêm thông tin tất cả các pad 
+		// Cần phải đọc thêm thông tin tất cả các pad
+		Mat labels, stats, centroids;
+		int numComponents = cv::connectedComponentsWithStats(padBoundaryMask, labels, stats,
+															 centroids, 8, CV_32S);
 
-		// Tìm điểm gần trace nhất trên pad boundary
-		double minDist = DBL_MAX;
-		Point nearestPadPoint;
-		for (int y = 0; y < padBoundary.rows; y++)
+		vector<Pad> pads = importBoardFeatureFromJson("./Images/golden");
+		if (!pads.empty())
 		{
-			for (int x = 0; x < padBoundary.cols; x++)
+			for (const auto& pad : pads)
 			{
-				if (padBoundary.at<uchar>(y, x) == 0)
+				cv::Rect box = pad.boundaryBox;
+
+				cv::Mat boundaryROI = padBoundaryMask(box);
+
+				int pixels = cv::countNonZero(boundaryROI);
+
+				if (pixels == 0)
 				{
+					std::cout << "Pad " << pad.id << ": NO BOUNDARY" << std::endl;
+
+					continue;
 				}
-				else
-				{
-					float d = dist.at<float>(y, x);
-					if (d < minDist)
-					{
-						minDist = d;
-						nearestPadPoint = Point(x, y);
-					}
-				}
+
+				std::cout << "Pad " << pad.id << ": boundary pixels = " << pixels << std::endl;
 			}
+
+			// Tìm điểm gần trace nhất trên pad boundary
+			// 			Mat dist, labels;
+			// distanceTransform(traceMaskInv, dist, labels, DIST_L2, 5, DIST_LABEL_PIXEL);
+			// double minDist = DBL_MAX;
+			// Point nearestPadPoint;
+			// for (int y = 0; y < padBoundaryMask.rows; y++)
+			// {
+			// 	for (int x = 0; x < padBoundaryMask.cols; x++)
+			// 	{
+			// 		if (padBoundaryMask.at<uchar>(y, x) == 0)
+			// 		{
+			// 		}
+			// 		else
+			// 		{
+			// 			float d = dist.at<float>(y, x);
+			// 			if (d < minDist)
+			// 			{
+			// 				minDist = d;
+			// 				nearestPadPoint = Point(x, y);
+			// 			}
+			// 		}
+			// 	}
+			// }
+		}
+		else
+		{
+			cout << "Cannot export json data" << endl;
 		}
 
 		imshow("Raw Image", goldenImg);
 		// imshow("Pad Raw Mask", padMaskGoldenImg);
 		imshow("Copper Mask", connectivityMask);
-		imshow("Pad Boundary", padBoundary);
+		imshow("Pad Boundary", padBoundaryMask);
 	}
 	waitKey(0);
 	destroyAllWindows();

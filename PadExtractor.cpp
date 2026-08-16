@@ -182,7 +182,7 @@ bool exportBoardFeaturesToJson(const vector<Pad>& pads, const string& filePath)
 		nlohmann::json p;
 		p["id"] = pad.id;
 		p["center"] = {pad.center.x, pad.center.y};
-		p["bounding_box"] = {pad.boundaryBox.x, pad.boundaryBox.y, pad.width, pad.height};
+		p["boundary_box"] = {pad.boundaryBox.x, pad.boundaryBox.y, pad.width, pad.height};
 		p["area"] = pad.area;
 		j["pads"].push_back(p);
 	}
