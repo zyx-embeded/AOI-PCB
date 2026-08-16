@@ -48,6 +48,16 @@ struct Pad
 	double confidence;
 };
 
+struct PadTraceCandidate
+{
+	Point padPoint;
+	Point tracePoint;
+
+	float distance;
+
+	int traceLabel;
+};
+
 vector<string> getImagePaths(string folderName)
 {
 	vector<string> imagePaths;
@@ -202,6 +212,57 @@ vector<Pad> importBoardFeatureFromJson(const string& filePath)
 	return pads;
 }
 
+PadTraceCandidate findNearestPadPoint(const Mat& dist, const Mat& labels,
+									  const unordered_map<int, Point>& labelToPoint,
+									  const Mat& boundaryROI, const Rect& box)
+{
+	PadTraceCandidate candidate{};
+
+	float minDist = FLT_MAX;
+
+	Point nearestPadPoint;
+	Point nearestTracePoint;
+
+	int nearestTraceLabel = -1;
+
+	for (int y = 0; y < boundaryROI.rows; y++)
+	{
+		for (int x = 0; x < boundaryROI.cols; x++)
+		{
+			if (boundaryROI.at<uchar>(y, x) == 0)
+				continue;
+
+			int gx = x + box.x;
+			int gy = y + box.y;
+
+			float d = dist.at<float>(gy, gx);
+
+			if (d < minDist)
+			{
+				minDist = d;
+
+				nearestPadPoint = Point(gx, gy);
+
+				nearestTraceLabel = labels.at<int>(gy, gx);
+
+				auto it = labelToPoint.find(nearestTraceLabel);
+
+				if (it != labelToPoint.end())
+				{
+					nearestTracePoint = it->second;
+				}
+			}
+		}
+	}
+
+	candidate.padPoint = nearestPadPoint;
+	candidate.tracePoint = nearestTracePoint;
+	candidate.distance = minDist;
+	candidate.traceLabel = nearestTraceLabel;
+
+	return candidate;
+}
+
 int main(int argc, char const* argv[])
 {
 	/* Get all images path*/
@@ -239,30 +300,44 @@ int main(int argc, char const* argv[])
 		bitwise_not(padMaskGoldenImg, keepMask);
 		goldenNoPad.setTo(cv::Scalar(0, 0, 0), padMaskGoldenImg);
 
-		Mat connectivityMask;  // Connect pad vào trace
-		Mat traceMask;		   // binary chỉ còn trace
-		Mat traceMaskInv;
-		Mat copperClean;  // copper sau morphology/cleanup
-
 		int lMin = 116, lMax = 255;
+		Mat connectivityMask;
+		Mat copperClean;
+		Mat traceMask = thresholdImg(goldenNoPad, kernel, LAB, L, lMin, lMax);
 
-		traceMask = thresholdImg(goldenNoPad, kernel, LAB, L, lMin, lMax);
 		morphologyEx(traceMask, copperClean, MORPH_OPEN, kernel, Point(-1, -1), 2);
-		bitwise_not(traceMask, traceMaskInv);
 		bitwise_not(copperClean, copperClean);
 		bitwise_or(copperClean, padMask, connectivityMask);
 
-		// Xử lý boundary pad
+		// Boundary Pad
 		Mat erodedPad, padBoundaryMask;
 		erode(padMask, erodedPad, kernel);
 		padBoundaryMask = padMask - erodedPad;
 
-		// Cần phải đọc thêm thông tin tất cả các pad
+		// Gather all pads properties
 		Mat labels, stats, centroids;
 		int numComponents = cv::connectedComponentsWithStats(padBoundaryMask, labels, stats,
 															 centroids, 8, CV_32S);
 
 		vector<Pad> pads = importBoardFeatureFromJson("./Images/golden");
+		Mat traceDist, traceLabels;
+
+		distanceTransform(traceMask, traceDist, traceLabels, DIST_L2, 5, DIST_LABEL_PIXEL);
+
+		unordered_map<int, Point> labelToPoint;
+
+		for (int y = 0; y < traceMask.rows; y++)
+		{
+			for (int x = 0; x < traceMask.cols; x++)
+			{
+				if (traceMask.at<uchar>(y, x) == 0)
+				{
+					int label = traceLabels.at<int>(y, x);
+					labelToPoint[label] = Point(x, y);
+				}
+			}
+		}
+		Mat debug = goldenImg.clone();
 		if (!pads.empty())
 		{
 			for (const auto& pad : pads)
@@ -279,33 +354,24 @@ int main(int argc, char const* argv[])
 
 					continue;
 				}
+				PadTraceCandidate candidate = findNearestPadPoint(traceDist, traceLabels,
+																  labelToPoint, boundaryROI, box);
+				cout << "Pad " << pad.id << " -> "
+					 << "PadPoint: (" << candidate.padPoint.x << ", " << candidate.padPoint.y
+					 << ") "
+					 << "TracePoint: (" << candidate.tracePoint.x << ", " << candidate.tracePoint.y
+					 << ") "
+					 << "Gap: " << candidate.distance << " Label: " << candidate.traceLabel << endl;
+				// debug
+				if (candidate.distance <= (float)4)
+				{
+					circle(debug, candidate.padPoint, 3, Scalar(0, 255, 0), -1);
 
-				std::cout << "Pad " << pad.id << ": boundary pixels = " << pixels << std::endl;
+					circle(debug, candidate.tracePoint, 3, Scalar(0, 0, 255), -1);
+
+					line(debug, candidate.padPoint, candidate.tracePoint, Scalar(255, 0, 0), 1);
+				}
 			}
-
-			// Tìm điểm gần trace nhất trên pad boundary
-			// 			Mat dist, labels;
-			// distanceTransform(traceMaskInv, dist, labels, DIST_L2, 5, DIST_LABEL_PIXEL);
-			// double minDist = DBL_MAX;
-			// Point nearestPadPoint;
-			// for (int y = 0; y < padBoundaryMask.rows; y++)
-			// {
-			// 	for (int x = 0; x < padBoundaryMask.cols; x++)
-			// 	{
-			// 		if (padBoundaryMask.at<uchar>(y, x) == 0)
-			// 		{
-			// 		}
-			// 		else
-			// 		{
-			// 			float d = dist.at<float>(y, x);
-			// 			if (d < minDist)
-			// 			{
-			// 				minDist = d;
-			// 				nearestPadPoint = Point(x, y);
-			// 			}
-			// 		}
-			// 	}
-			// }
 		}
 		else
 		{
@@ -313,9 +379,8 @@ int main(int argc, char const* argv[])
 		}
 
 		imshow("Raw Image", goldenImg);
-		// imshow("Pad Raw Mask", padMaskGoldenImg);
-		imshow("Copper Mask", connectivityMask);
-		imshow("Pad Boundary", padBoundaryMask);
+		imshow("Connectivity Mask", connectivityMask);
+		imshow("Visualize", debug);
 	}
 	waitKey(0);
 	destroyAllWindows();
